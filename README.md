@@ -83,8 +83,8 @@ ui-engineering-lab/
       micro-interactions/
       transitions/
 
-  pomodoro-timer/
-    watchflix/
+  projects/
+    pomodoro-timer/
       README.md
       apps/
       packages/
