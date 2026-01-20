@@ -1,0 +1,71 @@
+---
+import LikeButton from '../components/LikeButton.jsx'
+import ViewCounter from '../components/ViewCounter.jsx'
+import CommentToggle from '../components/CommentToggle.jsx'
+
+const title = "Understanding Islands Architecture";
+const content = `
+Islands Architecture is a modern approach to building fast websites. 
+Instead of shipping tons of JavaScript, we only add interactivity where needed.
+
+This blog post itself is mostly static HTML - super fast to load!
+The interactive parts (buttons, counters) are small "islands" of JavaScript.
+`;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        line-height: 1.6;
+      }
+      h1 {
+        color: #333;
+        border-bottom: 3px solid #4a90e2;
+        padding-bottom: 0.5rem;
+      }
+      .meta {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+      }
+      .content {
+        margin: 2rem 0;
+        white-space: pre-line;
+      }
+      .islands-section {
+        border-top: 2px solid #eee;
+        padding-top: 2rem;
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <article>
+      <h1>{title}</h1>
+      <div class="meta">
+        📅 Published: January 21, 2025 | ⏱️ 5 min read
+      </div>
+      <div class="content">
+        {content}
+      </div>
+
+      <div class="islands-section">
+        <h2>🏝️ Interactive Islands Below</h2>
+        <p>Watch the network tab - only these components load JavaScript!</p>
+        
+        <!-- Islands -->
+		<LikeButton client:visible /> <!-- What client:visible means: Load this component when it becomes visible in the viewport! -->
+		<ViewCounter client:idle /> <!-- What client:idle means: Load this component when the browser is idle (not busy)! -->
+		<CommentToggle client:load /> <!-- What client:load means: Load this component as soon as possible! -->
+      </div>
+    </article>
+  </body>
+</html>
