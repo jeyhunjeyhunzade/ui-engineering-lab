@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Netflix Hover Effect</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #141414;
+        font-family: "Netflix Sans", Arial, sans-serif;
+        padding: 2rem;
+        min-height: 100vh;
+      }
+
+      h1 {
+        color: #e50914;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+      }
+
+      .controls {
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 0.75rem 1.5rem;
+        background: #e50914;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.2s;
+      }
+
+      .btn:hover {
+        background: #f40612;
+      }
+
+      .btn.active {
+        background: #46d369;
+      }
+
+      .movies-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 2rem;
+        padding: 2rem 0;
+      }
+
+      .movie-card {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+      }
+
+      .movie-card img {
+        width: 100%;
+        height: 350px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .movie-card:hover {
+        transform: scale(1.05);
+        z-index: 10;
+      }
+
+      .movie-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+        padding: 1.5rem;
+        color: white;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+
+      .movie-card:hover .movie-info {
+        transform: translateY(0);
+      }
+
+      .movie-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+      }
+
+      .movie-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #46d369;
+      }
+
+      .movie-rating {
+        color: #ffd700;
+      }
+
+      .movie-description {
+        font-size: 0.85rem;
+        line-height: 1.4;
+        color: #ccc;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .movie-card:hover .movie-description {
+        max-height: 100px;
+      }
+
+      .play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-left: 4px;
+      }
+
+      .movie-card:hover .play-button {
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .play-button:hover {
+        background: white;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+
+      .status {
+        color: #46d369;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+
+      /* View Transition Animations */
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fade-out {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+
+      @keyframes slide-from-right {
+        from {
+          opacity: 0;
+          transform: translateX(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* These only work if View Transitions API is supported */
+      ::view-transition-old(root) {
+        animation: 0.4s ease-out both fade-out;
+      }
+
+      ::view-transition-new(root) {
+        animation: 0.4s ease-out both slide-from-right;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎬 Netflix-Style Movie Browser</h1>
+
+    <div class="status" id="status">Checking browser support...</div>
+
+    <div class="controls">
+      <button class="btn active" onclick="showAll()" id="btnAll">
+        All Movies
+      </button>
+      <button class="btn" onclick="showTopRated()" id="btnTop">
+        ⭐ Top Rated (8.8+)
+      </button>
+      <button class="btn" onclick="showRecent()" id="btnRecent">
+        🆕 Recent (2010+)
+      </button>
+    </div>
+
+    <div class="movies-grid" id="moviesGrid"></div>
+
+    <script>
+      const movies = [
+        {
+          id: 1,
+          title: "Inception",
+          year: 2010,
+          rating: 8.8,
+          description:
+            "A thief who steals corporate secrets through dream-sharing technology.",
+          image: "https://picsum.photos/seed/inception/300/400",
+        },
+        {
+          id: 2,
+          title: "The Matrix",
+          year: 1999,
+          rating: 8.7,
+          description:
+            "A computer hacker learns about the true nature of his reality.",
+          image: "https://picsum.photos/seed/matrix/300/400",
+        },
+        {
+          id: 3,
+          title: "Interstellar",
+          year: 2014,
+          rating: 8.6,
+          description:
+            "A team of explorers travel through a wormhole in space.",
+          image: "https://picsum.photos/seed/interstellar/300/400",
+        },
+        {
+          id: 4,
+          title: "The Dark Knight",
+          year: 2008,
+          rating: 9.0,
+          description: "Batman faces the Joker in Gotham City.",
+          image: "https://picsum.photos/seed/batman/300/400",
+        },
+        {
+          id: 5,
+          title: "Pulp Fiction",
+          year: 1994,
+          rating: 8.9,
+          description:
+            "Various interconnected stories of criminals in Los Angeles.",
+          image: "https://picsum.photos/seed/pulp/300/400",
+        },
+        {
+          id: 6,
+          title: "Fight Club",
+          year: 1999,
+          rating: 8.8,
+          description:
+            "An insomniac office worker forms an underground fight club.",
+          image: "https://picsum.photos/seed/fight/300/400",
+        },
+      ];
+
+      // Check browser support
+      const supportsViewTransitions = !!document.startViewTransition;
+      const statusEl = document.getElementById("status");
+
+      if (supportsViewTransitions) {
+        statusEl.textContent =
+          "✅ View Transitions supported! Click buttons to see animations.";
+        statusEl.style.color = "#46d369";
+      } else {
+        statusEl.textContent =
+          "⚠️ View Transitions not supported in this browser. Try Chrome 111+ or Edge 111+";
+        statusEl.style.color = "#ffd700";
+      }
+
+      function createMovieCard(movie) {
+        return `
+        <div class="movie-card">
+          <img src="${movie.image}" alt="${movie.title}">
+          <button class="play-button" onclick="playMovie(${movie.id})">▶</button>
+          <div class="movie-info">
+            <div class="movie-title">${movie.title}</div>
+            <div class="movie-meta">
+              <span class="movie-year">${movie.year}</span>
+              <span class="movie-rating">⭐ ${movie.rating}</span>
+            </div>
+            <div class="movie-description">${movie.description}</div>
+          </div>
+        </div>
+      `;
+      }
+
+      function updateMovies(movieList) {
+        const grid = document.getElementById("moviesGrid");
+
+        console.log("Updating movies...", {
+          count: movieList.length,
+          supportsTransitions: supportsViewTransitions,
+        });
+
+        if (!supportsViewTransitions) {
+          // Fallback without transitions
+          grid.innerHTML = movieList.map(createMovieCard).join("");
+          return;
+        }
+
+        // Use View Transition API
+        document.startViewTransition(() => {
+          grid.innerHTML = movieList.map(createMovieCard).join("");
+        });
+      }
+
+      function setActiveButton(buttonId) {
+        document.querySelectorAll(".btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        document.getElementById(buttonId).classList.add("active");
+      }
+
+      function showAll() {
+        console.log("Show all movies");
+        setActiveButton("btnAll");
+        updateMovies(movies);
+      }
+
+      function showTopRated() {
+        console.log("Show top rated");
+        setActiveButton("btnTop");
+        const filtered = movies.filter((m) => m.rating >= 8.8);
+        updateMovies(filtered);
+      }
+
+      function showRecent() {
+        console.log("Show recent");
+        setActiveButton("btnRecent");
+        const filtered = movies.filter((m) => m.year >= 2010);
+        updateMovies(filtered);
+      }
+
+      function playMovie(id) {
+        const movie = movies.find((m) => m.id === id);
+        alert(`🎬 Now Playing: ${movie.title}\n⭐ Rating: ${movie.rating}`);
+      }
+
+      // Initial render
+      showAll();
+    </script>
+  </body>
+</html>
